@@ -1,6 +1,20 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { BrowserRouter, Link, Navigate, Route, Routes, useParams } from "react-router-dom";
+import type { CSSProperties, ComponentType } from "react";
+import {
+  BarbellIcon,
+  BottleIcon,
+  DumbbellIcon,
+  HeartPulseIcon,
+  JumpRopeIcon,
+  KettlebellIcon,
+  RunningIcon,
+  StopwatchIcon,
+  TapeIcon,
+  TrophyIcon,
+  YogaIcon,
+} from "./components/FitnessIcons";
 
-const colors = {
+const palette = {
   bg: "#040404",
   panel: "#0B0B0B",
   panelSoft: "#121212",
@@ -11,7 +25,7 @@ const colors = {
   muted: "#B8B8B8",
 };
 
-const media = {
+const images = {
   trainerA: "https://instagram.fshj1-1.fna.fbcdn.net/v/t51.82787-15/627855802_17948785821097468_3428068473493695521_n.jpg",
   trainerB: "https://instagram.fdxb2-1.fna.fbcdn.net/v/t51.82787-15/626766526_17948242542097468_6733489749515280849_n.jpg",
   heroGym: "https://instagram.fdxb1-1.fna.fbcdn.net/v/t51.82787-15/598918578_17941829964097468_574593401407540340_n.jpg",
@@ -25,292 +39,406 @@ const media = {
   energy: "https://instagram.fdxb1-1.fna.fbcdn.net/v/t51.82787-15/622056241_17947007211097468_7187480197685636806_n.jpg",
 };
 
-const skillItems = [
-  { name: "Weight Loss", image: media.weightLoss, text: "Science-led fat loss built for real schedules." },
-  { name: "Strength Training", image: media.strength, text: "Progressive strength and form-based coaching." },
-  { name: "Martial Arts", image: media.martial, text: "Krav Maga and kickboxing for confidence." },
-  { name: "Swimming", image: media.swim, text: "Technique, stamina, and confidence in water." },
-  { name: "Kids Training", image: media.kids, text: "Discipline and self-belief for young champions." },
+type IconType = ComponentType<{ size?: number; className?: string; title?: string; style?: CSSProperties }>;
+
+const features: Array<{ title: string; body: string; icon: IconType; image: string }> = [
+  { title: "Weight Loss", body: "Fat loss strategy with sustainable habits.", icon: TapeIcon, image: images.weightLoss },
+  { title: "Strength", body: "Progressive overload and form-first coaching.", icon: DumbbellIcon, image: images.strength },
+  { title: "Cardio", body: "Conditioning blocks to improve stamina fast.", icon: RunningIcon, image: images.energy },
+  { title: "Martial Arts", body: "Krav Maga and kickboxing confidence sessions.", icon: BarbellIcon, image: images.martial },
+  { title: "Swimming", body: "Technique and endurance coaching in water.", icon: StopwatchIcon, image: images.swim },
+  { title: "Mobility", body: "Flexibility and mobility for pain-free movement.", icon: YogaIcon, image: images.philosophy },
 ];
 
-type Demo = {
-  id: number;
-  title: string;
-  kicker: string;
-  headline: string;
-  subline: string;
-  heroBg: string;
-  portrait: string;
-  layout: "split" | "center" | "portraitLeft" | "galleryHero" | "framed";
-};
-
-const demos: Demo[] = [
-  {
-    id: 1,
-    title: "Demo 1",
-    kicker: "Private Dubai Coaching",
-    headline: "Train With A System That Lasts",
-    subline: "Personalized coaching for weight loss, strength, martial arts, swimming, and kids training.",
-    heroBg: media.heroDark,
-    portrait: media.trainerA,
-    layout: "split",
-  },
-  {
-    id: 2,
-    title: "Demo 2",
-    kicker: "Transformation Partner",
-    headline: "Your Body Is Not The Problem",
-    subline: "Your approach needs structure, accountability, and sustainable progression.",
-    heroBg: media.heroGym,
-    portrait: media.trainerA,
-    layout: "center",
-  },
-  {
-    id: 3,
-    title: "Demo 3",
-    kicker: "13+ Years Experience",
-    headline: "Results Built On Discipline",
-    subline: "No templates, no guesswork. Just a plan tailored to your body and your life.",
-    heroBg: media.energy,
-    portrait: media.trainerB,
-    layout: "portraitLeft",
-  },
-  {
-    id: 4,
-    title: "Demo 4",
-    kicker: "Multi-Disciplinary",
-    headline: "One Coach. Multiple Skills.",
-    subline: "Fitness, martial arts, and swimming integrated into one complete system.",
-    heroBg: media.philosophy,
-    portrait: media.trainerA,
-    layout: "galleryHero",
-  },
-  {
-    id: 5,
-    title: "Demo 5",
-    kicker: "Limited Slots",
-    headline: "Private Training In Dubai",
-    subline: "Home or select gym sessions with full attention and long-term focus.",
-    heroBg: media.heroDark,
-    portrait: media.trainerB,
-    layout: "framed",
-  },
+const badges: Array<{ label: string; icon: IconType }> = [
+  { label: "Strength", icon: KettlebellIcon },
+  { label: "Cardio", icon: HeartPulseIcon },
+  { label: "Mobility", icon: YogaIcon },
+  { label: "Recovery", icon: BottleIcon },
 ];
 
-export default function App() {
-  const [activeDemo, setActiveDemo] = useState(1);
-  const demo = demos.find((item) => item.id === activeDemo) ?? demos[0];
-
-  const gallery = useMemo(
-    () => [media.trainerA, media.weightLoss, media.strength, media.martial, media.swim, media.kids, media.philosophy, media.energy],
-    [],
-  );
-
-  const sectionOrder: Record<Demo["layout"], Array<"hero" | "skills" | "method" | "gallery" | "cta">> = {
-    split: ["hero", "skills", "method", "gallery", "cta"],
-    center: ["hero", "method", "skills", "gallery", "cta"],
-    portraitLeft: ["hero", "gallery", "skills", "method", "cta"],
-    galleryHero: ["hero", "skills", "cta", "method", "gallery"],
-    framed: ["hero", "method", "gallery", "skills", "cta"],
-  };
-
-  const sectionMap: Record<"hero" | "skills" | "method" | "gallery" | "cta", ReactNode> = {
-    hero: <Hero demo={demo} />,
-    skills: <SkillsSection />,
-    method: <MethodSection portrait={demo.portrait} />,
-    gallery: <GallerySection images={gallery} />,
-    cta: <CtaSection />,
-  };
-
+function App() {
   return (
-    <div style={{ backgroundColor: colors.bg, color: colors.text }}>
+    <BrowserRouter>
       <MotionStyles />
+      <Routes>
+        <Route path="/" element={<Navigate to="/demos" replace />} />
+        <Route path="/demos" element={<DemosIndex />} />
+        <Route path="/demos/:id" element={<DemoRouter />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
 
-      <header className="sticky top-0 z-50 border-b backdrop-blur-md" style={{ borderColor: `${colors.olive}44`, backgroundColor: "rgba(4,4,4,0.88)" }}>
-        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-4 md:flex-row md:items-center md:justify-between">
-          <p className="text-base font-black tracking-[0.2em] md:text-lg">MADMAN FORM</p>
-          <div className="flex flex-wrap gap-2">
-            {demos.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => setActiveDemo(item.id)}
-                className="border px-3 py-1.5 text-xs font-black tracking-wider"
-                style={{
-                  borderColor: activeDemo === item.id ? colors.cyan : `${colors.olive}55`,
-                  color: activeDemo === item.id ? colors.cyan : colors.muted,
-                  backgroundColor: activeDemo === item.id ? `${colors.cyan}12` : "transparent",
-                }}
-              >
-                {item.title}
-              </button>
-            ))}
-          </div>
+function DemosIndex() {
+  return (
+    <div style={{ backgroundColor: palette.bg, color: palette.text }} className="min-h-screen">
+      <TopNav />
+      <main className="mx-auto max-w-6xl px-4 py-16">
+        <p className="text-xs uppercase tracking-[0.24em]" style={{ color: palette.cyan }}>
+          Demo Navigation
+        </p>
+        <h1 className="mt-2 text-4xl font-black md:text-6xl">5 Premium Fitness Symbol Demos</h1>
+        <p className="mt-4 max-w-3xl text-lg" style={{ color: palette.muted }}>
+          Same color palette, different composition styles. Each demo enhances the existing content with a consistent fitness icon system.
+        </p>
+        <div className="mt-10 grid gap-4 md:grid-cols-2">
+          {[
+            ["1", "Icon-Pattern Hero"],
+            ["2", "Feature Grid"],
+            ["3", "Performance Dashboard"],
+            ["4", "Premium Landing"],
+            ["5", "Minimal Luxe"],
+          ].map(([id, name]) => (
+            <Link
+              key={id}
+              to={`/demos/${id}`}
+              className="group border p-6 transition-all duration-300 hover:-translate-y-1"
+              style={{ borderColor: `${palette.olive}66`, backgroundColor: palette.panelSoft }}
+              aria-label={`Open demo ${id}: ${name}`}
+            >
+              <p className="text-xs uppercase tracking-[0.24em]" style={{ color: palette.olive }}>
+                Demo {id}
+              </p>
+              <h2 className="mt-2 text-2xl font-black">{name}</h2>
+              <p className="mt-2 text-sm" style={{ color: palette.muted }}>
+                Open variant to preview symbol placement, hover behavior, and section composition.
+              </p>
+              <span className="mt-4 inline-flex items-center gap-2 text-sm font-semibold" style={{ color: palette.cyan }}>
+                View Demo <JumpRopeIcon size={18} />
+              </span>
+            </Link>
+          ))}
         </div>
-      </header>
+      </main>
+    </div>
+  );
+}
 
-      {sectionOrder[demo.layout].map((section) => (
-        <div key={`${demo.id}-${section}`}>{sectionMap[section]}</div>
-      ))}
+function DemoRouter() {
+  const { id } = useParams();
+  const demoId = Number(id);
+  if (![1, 2, 3, 4, 5].includes(demoId)) {
+    return <Navigate to="/demos" replace />;
+  }
+  return <DemoPage demoId={demoId as 1 | 2 | 3 | 4 | 5} />;
+}
 
-      <footer className="border-t px-4 py-8 text-center text-sm" style={{ borderColor: `${colors.olive}44`, color: colors.muted }}>
+function DemoPage({ demoId }: { demoId: 1 | 2 | 3 | 4 | 5 }) {
+  return (
+    <div style={{ backgroundColor: palette.bg, color: palette.text }} className="min-h-screen">
+      <TopNav active={demoId} />
+      {demoId === 1 ? <DemoOne /> : null}
+      {demoId === 2 ? <DemoTwo /> : null}
+      {demoId === 3 ? <DemoThree /> : null}
+      {demoId === 4 ? <DemoFour /> : null}
+      {demoId === 5 ? <DemoFive /> : null}
+      <footer className="border-t px-4 py-8 text-center text-sm" style={{ borderColor: `${palette.olive}44`, color: palette.muted }}>
         Developed by Qed FullStacks Keshav
       </footer>
     </div>
   );
 }
 
-function Hero({ demo }: { demo: Demo }) {
-  const background = (
-    <>
-      <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${demo.heroBg})` }} />
-      <div className="absolute inset-0 bg-black/78" />
-      <div className="absolute inset-0" style={{ background: `linear-gradient(110deg, ${colors.oliveDeep}44, transparent 40%, transparent 70%, ${colors.oliveDeep}33)` }} />
-    </>
-  );
-
-  if (demo.layout === "center") {
-    return (
-      <section className="relative overflow-hidden px-4 py-20 md:py-28">
-        {background}
-        <div className="relative mx-auto flex max-w-6xl flex-col items-center text-center">
-          <p className="rise text-xs uppercase tracking-[0.24em]" style={{ color: colors.olive }}>
-            {demo.kicker}
-          </p>
-          <h1 className="rise mt-3 text-4xl font-black leading-tight md:text-7xl">
-            <span style={{ color: colors.olive }}>YOUR BODY</span> ISN'T THE PROBLEM.
-            <br />
-            <span style={{ color: colors.cyan }}>YOUR APPROACH</span> IS.
-          </h1>
-          <p className="rise mt-4 max-w-3xl text-lg" style={{ color: colors.muted }}>
-            {demo.subline}
-          </p>
-          <img src={demo.portrait} alt="Trainer portrait" className="floatSlow mt-8 h-[430px] w-full max-w-md object-cover" loading="eager" />
-          <HeroButtons />
-        </div>
-      </section>
-    );
-  }
-
-  if (demo.layout === "portraitLeft") {
-    return (
-      <section className="relative overflow-hidden px-4 py-20 md:py-28">
-        {background}
-        <div className="relative mx-auto grid max-w-7xl items-center gap-10 md:grid-cols-[0.9fr_1.1fr]">
-          <img src={demo.portrait} alt="Trainer portrait" className="floatSlow h-[560px] w-full object-cover" loading="eager" />
-          <div>
-            <p className="rise text-xs uppercase tracking-[0.24em]" style={{ color: colors.cyan }}>
-              {demo.kicker}
-            </p>
-            <h1 className="rise mt-3 text-4xl font-black leading-tight md:text-7xl">{demo.headline}</h1>
-            <p className="rise mt-4 max-w-2xl text-lg" style={{ color: colors.muted }}>
-              {demo.subline}
-            </p>
-            <HeroButtons />
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  if (demo.layout === "galleryHero") {
-    return (
-      <section className="relative overflow-hidden px-4 py-20 md:py-28">
-        {background}
-        <div className="relative mx-auto max-w-7xl">
-          <p className="rise text-xs uppercase tracking-[0.24em]" style={{ color: colors.olive }}>
-            {demo.kicker}
-          </p>
-          <h1 className="rise mt-3 max-w-5xl text-4xl font-black leading-tight md:text-7xl">{demo.headline}</h1>
-          <p className="rise mt-4 max-w-3xl text-lg" style={{ color: colors.muted }}>
-            {demo.subline}
-          </p>
-          <div className="mt-8 grid gap-4 md:grid-cols-3">
-            <img src={demo.portrait} alt="Trainer portrait" className="floatSlow h-72 w-full object-cover" loading="eager" />
-            <img src={media.martial} alt="Martial arts" className="h-72 w-full object-cover" loading="lazy" />
-            <img src={media.swim} alt="Swimming" className="h-72 w-full object-cover" loading="lazy" />
-          </div>
-          <HeroButtons />
-        </div>
-      </section>
-    );
-  }
-
-  if (demo.layout === "framed") {
-    return (
-      <section className="relative overflow-hidden px-4 py-20 md:py-28">
-        {background}
-        <div className="relative mx-auto grid max-w-7xl items-center gap-10 md:grid-cols-2">
-          <div className="border p-6 md:p-10" style={{ borderColor: `${colors.olive}77`, backgroundColor: "rgba(10,10,10,0.72)" }}>
-            <p className="rise text-xs uppercase tracking-[0.24em]" style={{ color: colors.olive }}>
-              {demo.kicker}
-            </p>
-            <h1 className="rise mt-3 text-4xl font-black leading-tight md:text-6xl">{demo.headline}</h1>
-            <p className="rise mt-4 text-lg" style={{ color: colors.muted }}>
-              {demo.subline}
-            </p>
-            <HeroButtons />
-          </div>
-          <div className="border p-3" style={{ borderColor: `${colors.cyan}66` }}>
-            <img src={demo.portrait} alt="Trainer portrait" className="floatSlow h-[520px] w-full object-cover" loading="eager" />
-          </div>
-        </div>
-      </section>
-    );
-  }
-
+function TopNav({ active }: { active?: number }) {
   return (
-    <section className="relative overflow-hidden px-4 py-20 md:py-28">
-      {background}
-      <div className="relative mx-auto grid max-w-7xl items-center gap-10 md:grid-cols-[1.15fr_0.85fr]">
-        <div>
-          <p className="rise text-xs uppercase tracking-[0.24em]" style={{ color: colors.olive }}>
-            {demo.kicker}
-          </p>
-          <h1 className="rise mt-3 text-4xl font-black leading-tight md:text-7xl">{demo.headline}</h1>
-          <p className="rise mt-4 max-w-3xl text-lg" style={{ color: colors.muted }}>
-            {demo.subline}
-          </p>
-          <HeroButtons />
-        </div>
-        <img src={demo.portrait} alt="Trainer portrait" className="floatSlow h-[560px] w-full object-cover" loading="eager" />
+    <header className="sticky top-0 z-50 border-b backdrop-blur-md" style={{ borderColor: `${palette.olive}44`, backgroundColor: "rgba(4,4,4,0.88)" }}>
+      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-4">
+        <Link to="/demos" className="text-base font-black tracking-[0.2em] md:text-lg">
+          MADMAN FORM
+        </Link>
+        <nav className="flex flex-wrap gap-2" aria-label="Demo selector">
+          {[1, 2, 3, 4, 5].map((id) => (
+            <Link
+              key={id}
+              to={`/demos/${id}`}
+              className="border px-3 py-1.5 text-xs font-black tracking-wider"
+              style={{
+                borderColor: active === id ? palette.cyan : `${palette.olive}55`,
+                color: active === id ? palette.cyan : palette.muted,
+                backgroundColor: active === id ? `${palette.cyan}12` : "transparent",
+              }}
+              aria-label={`Open demo ${id}`}
+            >
+              Demo {id}
+            </Link>
+          ))}
+        </nav>
       </div>
-    </section>
+    </header>
+  );
+}
+
+function SectionDivider({ icon: Icon }: { icon: IconType }) {
+  return (
+    <div className="mx-auto my-8 flex max-w-7xl items-center gap-3 px-4" aria-hidden="true">
+      <div className="h-px flex-1" style={{ backgroundColor: `${palette.olive}55` }} />
+      <Icon size={18} className="text-current" style={{ color: palette.olive }} />
+      <div className="h-px flex-1" style={{ backgroundColor: `${palette.olive}55` }} />
+    </div>
   );
 }
 
 function HeroButtons() {
   return (
-    <div className="rise mt-8 flex flex-wrap gap-3">
+    <div className="mt-8 flex flex-wrap gap-3">
       <a
         href="https://wa.me/971569200467"
         target="_blank"
         rel="noreferrer"
-        className="pulseAction px-6 py-3 text-sm font-black"
-        style={{ backgroundColor: colors.olive, color: colors.bg }}
+        className="pulseAction inline-flex items-center gap-2 px-6 py-3 text-sm font-black"
+        style={{ backgroundColor: palette.olive, color: palette.bg }}
+        aria-label="Start on WhatsApp"
       >
-        WHATSAPP +971 56 920 0467
+        <HeartPulseIcon size={18} /> WhatsApp +971 56 920 0467
       </a>
-      <a href="#cta" className="border px-6 py-3 text-sm font-black" style={{ borderColor: colors.cyan }}>
-        START NOW
+      <a href="#features" className="inline-flex items-center gap-2 border px-6 py-3 text-sm font-black" style={{ borderColor: palette.cyan }}>
+        <StopwatchIcon size={18} /> View Program
       </a>
     </div>
   );
 }
 
-function SkillsSection() {
+function BadgeRow() {
   return (
-    <section className="mx-auto max-w-7xl px-4 py-20">
-      <p className="text-xs uppercase tracking-[0.24em]" style={{ color: colors.cyan }}>
-        Specialties
-      </p>
-      <h2 className="mt-2 text-4xl font-black md:text-6xl">Programs Built For Results</h2>
-      <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {skillItems.map((item) => (
-          <article key={item.name} className="border p-3" style={{ borderColor: `${colors.olive}66`, backgroundColor: colors.panelSoft }}>
-            <img src={item.image} alt={item.name} className="h-44 w-full object-cover" loading="lazy" />
-            <h3 className="mt-3 text-2xl font-black">{item.name}</h3>
-            <p className="mt-2 text-sm" style={{ color: colors.muted }}>
-              {item.text}
+    <div className="mt-6 flex flex-wrap gap-2" aria-label="Fitness focus badges">
+      {badges.map(({ label, icon: Icon }) => (
+        <span
+          key={label}
+          className="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold"
+          style={{ borderColor: `${palette.olive}77`, backgroundColor: `${palette.panelSoft}` }}
+        >
+          <Icon size={14} style={{ color: palette.cyan }} />
+          {label}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function DemoOne() {
+  return (
+    <main>
+      <section className="relative overflow-hidden px-4 py-20 md:py-28">
+        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${images.heroDark})` }} />
+        <div className="absolute inset-0 bg-black/80" />
+        <IconPattern />
+        <div className="relative mx-auto grid max-w-7xl items-center gap-10 md:grid-cols-[1.15fr_0.85fr]">
+          <div className="rounded-2xl border p-8 backdrop-blur-sm" style={{ borderColor: `${palette.olive}66`, backgroundColor: "rgba(10,10,10,0.58)" }}>
+            <p className="text-xs uppercase tracking-[0.24em]" style={{ color: palette.olive }}>
+              Demo 1 | Icon-Pattern Hero
+            </p>
+            <h1 className="mt-3 text-4xl font-black leading-tight md:text-7xl">Train With A System That Lasts</h1>
+            <p className="mt-4 max-w-2xl text-lg" style={{ color: palette.muted }}>
+              Message me to start today. Custom fitness, martial arts, swimming, and transformation coaching for Dubai clients.
+            </p>
+            <BadgeRow />
+            <HeroButtons />
+          </div>
+          <img src={images.trainerA} alt="Trainer portrait" className="floatSlow h-[560px] w-full object-cover shadow-2xl" loading="eager" />
+        </div>
+      </section>
+      <SectionDivider icon={DumbbellIcon} />
+      <SharedFeatureStrip />
+      <SharedGallery />
+    </main>
+  );
+}
+
+function DemoTwo() {
+  return (
+    <main>
+      <section className="mx-auto max-w-7xl px-4 py-20">
+        <p className="text-xs uppercase tracking-[0.24em]" style={{ color: palette.cyan }}>
+          Demo 2 | Feature Grid
+        </p>
+        <h1 className="mt-2 text-4xl font-black md:text-6xl">Every Program Mapped To A Fitness Skill</h1>
+        <p className="mt-4 max-w-3xl text-lg" style={{ color: palette.muted }}>
+          Consistent iconography, premium spacing, soft borders, and subtle micro-interactions with your existing brand palette.
+        </p>
+        <div id="features" className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+          {features.map(({ title, body, icon: Icon, image }) => (
+            <article
+              key={title}
+              className="group rounded-2xl border p-4 transition-all duration-300 hover:-translate-y-1"
+              style={{ borderColor: `${palette.olive}66`, backgroundColor: palette.panelSoft }}
+            >
+              <img src={image} alt={`${title} training`} className="h-44 w-full rounded-xl object-cover" loading="lazy" />
+              <div className="mt-4 flex items-center gap-3">
+                <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg" style={{ backgroundColor: `${palette.olive}22` }}>
+                  <Icon size={20} style={{ color: palette.cyan }} className="transition-transform duration-300 group-hover:rotate-6 group-hover:scale-110" />
+                </span>
+                <h2 className="text-xl font-black">{title}</h2>
+              </div>
+              <p className="mt-3 text-sm" style={{ color: palette.muted }}>
+                {body}
+              </p>
+            </article>
+          ))}
+        </div>
+      </section>
+      <SectionDivider icon={KettlebellIcon} />
+      <SharedCta />
+    </main>
+  );
+}
+
+function DemoThree() {
+  const kpis = [
+    { label: "Client Retention", value: "92%", icon: TrophyIcon },
+    { label: "Weekly Sessions", value: "120+", icon: StopwatchIcon },
+    { label: "Avg. Progress Check", value: "14 Days", icon: TapeIcon },
+    { label: "Energy Score Lift", value: "+38%", icon: HeartPulseIcon },
+  ];
+
+  const meters = [
+    ["Strength", 86, DumbbellIcon],
+    ["Cardio", 78, RunningIcon],
+    ["Mobility", 72, YogaIcon],
+    ["Recovery", 81, BottleIcon],
+  ] as const;
+
+  return (
+    <main>
+      <section className="mx-auto max-w-7xl px-4 py-20">
+        <p className="text-xs uppercase tracking-[0.24em]" style={{ color: palette.olive }}>
+          Demo 3 | Performance Dashboard
+        </p>
+        <h1 className="mt-2 text-4xl font-black md:text-6xl">Track What Drives Transformation</h1>
+        <div className="mt-8 grid gap-4 md:grid-cols-4">
+          {kpis.map(({ label, value, icon: Icon }) => (
+            <article key={label} className="rounded-xl border p-4" style={{ borderColor: `${palette.olive}66`, backgroundColor: palette.panelSoft }}>
+              <div className="flex items-center justify-between">
+                <p className="text-xs uppercase tracking-[0.15em]" style={{ color: palette.muted }}>
+                  {label}
+                </p>
+                <Icon size={18} style={{ color: palette.cyan }} />
+              </div>
+              <p className="mt-4 text-3xl font-black">{value}</p>
+            </article>
+          ))}
+        </div>
+        <div className="mt-8 grid gap-5 md:grid-cols-2">
+          <div className="rounded-2xl border p-6" style={{ borderColor: `${palette.olive}66`, backgroundColor: palette.panelSoft }}>
+            <h2 className="text-2xl font-black">Performance Mix</h2>
+            <div className="mt-5 space-y-4">
+              {meters.map(([name, amount, Icon]) => (
+                <div key={name}>
+                  <div className="mb-2 flex items-center justify-between text-sm">
+                    <span className="inline-flex items-center gap-2">
+                      <Icon size={14} style={{ color: palette.cyan }} /> {name}
+                    </span>
+                    <span style={{ color: palette.muted }}>{amount}%</span>
+                  </div>
+                  <div className="h-2 rounded-full" style={{ backgroundColor: `${palette.oliveDeep}55` }}>
+                    <div className="h-2 rounded-full" style={{ width: `${amount}%`, backgroundColor: palette.olive }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <img src={images.trainerB} alt="Trainer portrait dashboard" className="h-full min-h-[340px] w-full rounded-2xl object-cover" loading="lazy" />
+        </div>
+      </section>
+      <SectionDivider icon={StopwatchIcon} />
+      <SharedCta />
+    </main>
+  );
+}
+
+function DemoFour() {
+  return (
+    <main>
+      <section className="relative overflow-hidden px-4 py-24 md:py-32" style={{ backgroundColor: palette.panel }}>
+        <div className="absolute inset-0" style={{ background: `radial-gradient(circle at 80% 20%, ${palette.oliveDeep}33, transparent 35%), radial-gradient(circle at 20% 80%, ${palette.cyan}22, transparent 35%)` }} />
+        <div className="relative mx-auto max-w-7xl">
+          <p className="text-xs uppercase tracking-[0.24em]" style={{ color: palette.olive }}>
+            Demo 4 | Premium Landing
+          </p>
+          <h1 className="mt-2 max-w-5xl text-4xl font-black leading-tight md:text-7xl">
+            Editorial Spacing. Strong Symbol Language. Conversion-Driven Flow.
+          </h1>
+          <div className="mt-12 grid gap-8 md:grid-cols-2">
+            <img src={images.trainerA} alt="Trainer premium portrait" className="h-[540px] w-full rounded-2xl object-cover" loading="eager" />
+            <div>
+              <SectionHeader icon={TrophyIcon} title="What Makes This Premium" />
+              <ul className="mt-4 space-y-3 text-base" style={{ color: palette.muted }}>
+                <li className="inline-flex gap-2"><DumbbellIcon size={18} style={{ color: palette.cyan }} />Tasteful gradients and subtle depth.</li>
+                <li className="inline-flex gap-2"><RunningIcon size={18} style={{ color: palette.cyan }} />Consistent icon style across all sections.</li>
+                <li className="inline-flex gap-2"><BottleIcon size={18} style={{ color: palette.cyan }} />Micro-interactions for polish without noise.</li>
+                <li className="inline-flex gap-2"><YogaIcon size={18} style={{ color: palette.cyan }} />Balanced white space and section rhythm.</li>
+              </ul>
+              <HeroButtons />
+            </div>
+          </div>
+        </div>
+      </section>
+      <SectionDivider icon={TrophyIcon} />
+      <SharedFeatureStrip />
+      <SharedCta />
+    </main>
+  );
+}
+
+function DemoFive() {
+  return (
+    <main>
+      <section className="mx-auto max-w-6xl px-4 py-20 md:py-28">
+        <p className="text-xs uppercase tracking-[0.24em]" style={{ color: palette.cyan }}>
+          Demo 5 | Minimal Luxe
+        </p>
+        <h1 className="mt-2 text-4xl font-black leading-tight md:text-6xl">Less Elements. More Intent.</h1>
+        <p className="mt-4 max-w-2xl text-lg" style={{ color: palette.muted }}>
+          Sparse icon marks, strong typography, and subtle separators keep the design refined and premium.
+        </p>
+        <div className="mt-10 grid gap-8 md:grid-cols-[0.9fr_1.1fr]">
+          <img src={images.trainerB} alt="Minimal portrait trainer" className="h-[520px] w-full object-cover" loading="eager" />
+          <div className="space-y-5">
+            <SectionHeader icon={TapeIcon} title="Training Principles" />
+            {[
+              ["Consistency", "Small weekly wins over random intensity.", HeartPulseIcon],
+              ["Structure", "Clear plan for strength, cardio, and mobility.", BarbellIcon],
+              ["Sustainability", "Built for your real calendar and lifestyle.", BottleIcon],
+            ].map(([head, body, Icon]) => (
+              <div key={head as string} className="border-l-2 pl-4" style={{ borderColor: `${palette.olive}88` }}>
+                <p className="inline-flex items-center gap-2 text-lg font-black">
+                  <Icon size={17} style={{ color: palette.cyan }} /> {head as string}
+                </p>
+                <p className="mt-1 text-sm" style={{ color: palette.muted }}>
+                  {body as string}
+                </p>
+              </div>
+            ))}
+            <HeroButtons />
+          </div>
+        </div>
+      </section>
+      <SectionDivider icon={YogaIcon} />
+      <SharedGallery minimal />
+    </main>
+  );
+}
+
+function SectionHeader({ title, icon: Icon }: { title: string; icon: IconType }) {
+  return (
+    <div className="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold" style={{ borderColor: `${palette.olive}77` }}>
+      <Icon size={16} style={{ color: palette.cyan }} /> {title}
+    </div>
+  );
+}
+
+function SharedFeatureStrip() {
+  return (
+    <section id="features" className="mx-auto max-w-7xl px-4 py-16">
+      <div className="grid gap-4 md:grid-cols-3">
+        {features.slice(0, 3).map(({ title, body, icon: Icon }) => (
+          <article key={title} className="group rounded-xl border p-5 transition-all duration-300 hover:-translate-y-1" style={{ borderColor: `${palette.olive}66`, backgroundColor: palette.panelSoft }}>
+            <div className="inline-flex h-10 w-10 items-center justify-center rounded-lg" style={{ backgroundColor: `${palette.olive}22` }}>
+              <Icon size={20} style={{ color: palette.cyan }} className="transition-transform duration-300 group-hover:scale-110" />
+            </div>
+            <h3 className="mt-3 text-xl font-black">{title}</h3>
+            <p className="mt-2 text-sm" style={{ color: palette.muted }}>
+              {body}
             </p>
           </article>
         ))}
@@ -319,49 +447,19 @@ function SkillsSection() {
   );
 }
 
-function MethodSection({ portrait }: { portrait: string }) {
+function SharedGallery({ minimal }: { minimal?: boolean }) {
+  const items = [images.weightLoss, images.strength, images.martial, images.swim, images.kids, images.philosophy, images.energy, images.trainerA];
   return (
-    <section className="px-4 py-20" style={{ backgroundColor: colors.panel }}>
-      <div className="mx-auto grid max-w-7xl items-center gap-10 md:grid-cols-2">
-        <img src={portrait} alt="Coach portrait" className="h-[560px] w-full object-cover" loading="lazy" />
-        <div>
-          <p className="text-xs uppercase tracking-[0.24em]" style={{ color: colors.olive }}>
-            Method
-          </p>
-          <h2 className="mt-2 text-4xl font-black leading-tight md:text-6xl">
-            Discipline
-            <br />
-            Motion
-            <br />
-            <span style={{ color: colors.cyan }}>Freedom</span>
-          </h2>
-          <ul className="mt-6 space-y-3 text-lg" style={{ color: colors.muted }}>
-            <li>Custom programming that fits your body and schedule.</li>
-            <li>Form-first coaching to reduce injury risk.</li>
-            <li>Accountability support to maintain consistency.</li>
-            <li>13+ years of multi-disciplinary coaching in Dubai.</li>
-          </ul>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function GallerySection({ images }: { images: string[] }) {
-  return (
-    <section className="mx-auto max-w-7xl px-4 py-20">
-      <h2 className="text-4xl font-black md:text-6xl">Portrait + Training Pictures</h2>
-      <p className="mt-3 max-w-3xl text-base" style={{ color: colors.muted }}>
-        Symbolic visuals for strength, martial arts, swimming, kids coaching, and transformation.
-      </p>
-      <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4">
-        {images.map((image, idx) => (
+    <section className="mx-auto max-w-7xl px-4 py-16">
+      <h2 className="text-3xl font-black md:text-5xl">Trainer + Symbolic Fitness Pictures</h2>
+      <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
+        {items.map((item, idx) => (
           <img
-            key={`${image}-${idx}`}
-            src={image}
-            alt={`Training visual ${idx + 1}`}
-            className={`w-full object-cover transition duration-500 hover:scale-[1.03] ${idx % 3 === 0 ? "aspect-[4/5]" : "aspect-square"}`}
+            key={`${item}-${idx}`}
+            src={item}
+            alt={`Fitness visual ${idx + 1}`}
             loading="lazy"
+            className={`w-full object-cover transition duration-300 hover:opacity-90 ${minimal ? "aspect-square" : idx % 3 === 0 ? "aspect-[4/5]" : "aspect-square"}`}
           />
         ))}
       </div>
@@ -369,35 +467,32 @@ function GallerySection({ images }: { images: string[] }) {
   );
 }
 
-function CtaSection() {
+function SharedCta() {
   return (
-    <section id="cta" className="px-4 py-20" style={{ backgroundColor: colors.panel }}>
-      <div
-        className="mx-auto max-w-7xl border p-8 md:p-12"
-        style={{ borderColor: `${colors.olive}77`, background: `linear-gradient(120deg, ${colors.oliveDeep}38, ${colors.bg})` }}
-      >
-        <h2 className="text-4xl font-black md:text-6xl">Start Your Transformation This Week</h2>
-        <p className="mt-4 max-w-3xl text-lg" style={{ color: colors.muted }}>
-          Private training at your home or select gym in Dubai. Limited slots available.
+    <section className="px-4 py-16" style={{ backgroundColor: palette.panel }}>
+      <div className="mx-auto max-w-7xl rounded-2xl border p-8 md:p-12" style={{ borderColor: `${palette.olive}77`, background: `linear-gradient(120deg, ${palette.oliveDeep}30, ${palette.bg})` }}>
+        <h2 className="text-3xl font-black md:text-5xl">Ready To Start Your Transformation?</h2>
+        <p className="mt-3 max-w-3xl text-base" style={{ color: palette.muted }}>
+          Private training in Dubai, at your home or select gym. Limited slots available.
         </p>
-        <div className="mt-7 flex flex-wrap gap-3">
+        <div className="mt-6 flex flex-wrap gap-3">
           <a
             href="https://wa.me/971569200467"
             target="_blank"
             rel="noreferrer"
-            className="pulseAction px-7 py-3 text-sm font-black"
-            style={{ backgroundColor: colors.olive, color: colors.bg }}
+            className="pulseAction inline-flex items-center gap-2 px-7 py-3 text-sm font-black"
+            style={{ backgroundColor: palette.olive, color: palette.bg }}
           >
-            BOOK ON WHATSAPP
+            <TrophyIcon size={18} /> Book On WhatsApp
           </a>
           <a
             href="https://www.instagram.com/madman.form"
             target="_blank"
             rel="noreferrer"
-            className="border px-7 py-3 text-sm font-black"
-            style={{ borderColor: colors.cyan }}
+            className="inline-flex items-center gap-2 border px-7 py-3 text-sm font-black"
+            style={{ borderColor: palette.cyan }}
           >
-            OPEN INSTAGRAM
+            <JumpRopeIcon size={18} /> Open Instagram
           </a>
         </div>
       </div>
@@ -405,19 +500,26 @@ function CtaSection() {
   );
 }
 
+function IconPattern() {
+  const icons = [DumbbellIcon, KettlebellIcon, RunningIcon, StopwatchIcon, TapeIcon, YogaIcon];
+  return (
+    <div className="pointer-events-none absolute inset-0 opacity-20" aria-hidden="true">
+      <div className="mx-auto grid max-w-7xl grid-cols-6 gap-10 px-8 py-10">
+        {Array.from({ length: 24 }).map((_, idx) => {
+          const Icon = icons[idx % icons.length];
+          return <Icon key={idx} size={26} style={{ color: idx % 2 ? palette.olive : palette.cyan }} className="blur-[0.2px]" />;
+        })}
+      </div>
+    </div>
+  );
+}
+
 function MotionStyles() {
   return (
     <style>{`
-      .rise { animation: rise .75s ease both; }
-      .rise:nth-child(2) { animation-delay: .08s; }
-      .rise:nth-child(3) { animation-delay: .16s; }
-      .rise:nth-child(4) { animation-delay: .24s; }
-      .floatSlow { animation: floatSlow 5s ease-in-out infinite; }
+      html { scroll-behavior: smooth; }
+      .floatSlow { animation: floatSlow 4.8s ease-in-out infinite; }
       .pulseAction { animation: pulseAction 2.2s ease-in-out infinite; }
-      @keyframes rise {
-        from { opacity: 0; transform: translateY(16px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
       @keyframes floatSlow {
         0%, 100% { transform: translateY(0); }
         50% { transform: translateY(-6px); }
@@ -429,3 +531,5 @@ function MotionStyles() {
     `}</style>
   );
 }
+
+export default App;
